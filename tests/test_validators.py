@@ -7,7 +7,7 @@ from pathlib import Path
 # PATH_SETUP: запуск тестов из корня проекта без установки пакета.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from form_validator import validate_email, validate_username
+from form_validator import validate_email, validate_phone, validate_username
 from form_validator.validators import ValidationError
 
 

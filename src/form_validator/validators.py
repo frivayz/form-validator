@@ -45,19 +45,26 @@ def validate_username(value: str) -> str:
     return value
 
 
-PHONE_ALLOWED_RE = re.compile(r"^[\d\s()+\-]*$")
+PHONE_DIGITS_RE = re.compile(r"\D")
 
 
-PHONE_ALLOWED_RE = re.compile(r"^[\d\s()+\-]*$")
+def validate_phone(value: str) -> str:
+    """Проверяет номер телефона и приводит его к формату +7XXXXXXXXXX.
 
+    :param value: проверяемое значение
+    :return: нормализованный номер
+    :raises ValidationError: если номер не соответствует формату
+    """
+    if not isinstance(value, str):
+        raise ValidationError("Телефон должен быть строкой")
 
-PHONE_ALLOWED_RE = re.compile(r"^[\d\s()+\-]*$")
+    digits = PHONE_DIGITS_RE.sub("", value)
 
+    if len(digits) == 11 and digits[0] in "78":
+        digits = "7" + digits[1:]
+    elif len(digits) == 10:
+        digits = "7" + digits
+    else:
+        raise ValidationError(f"Некорректный номер телефона: {value!r}")
 
-PHONE_ALLOWED_RE = re.compile(r"^[\d\s()+\-]*$")
-
-
-PHONE_ALLOWED_RE = re.compile(r"^[\d\s()+\-]*$")
-
-
-PHONE_ALLOWED_RE = re.compile(r"^[\d\s()+\-]*$")
+    return "+" + digits
