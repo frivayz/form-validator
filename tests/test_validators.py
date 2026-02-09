@@ -51,6 +51,31 @@ class TestValidateUsername(unittest.TestCase):
         with self.assertRaises(ValidationError):
             validate_username("студент")
 
+class TestValidatePhone(unittest.TestCase):
+    def test_plus_seven_with_brackets(self):
+        self.assertEqual(validate_phone("+7 (999) 123-45-67"), "+79991234567")
+
+    def test_eight_prefix(self):
+        self.assertEqual(validate_phone("8-999-123-45-67"), "+79991234567")
+
+    def test_spaces_only(self):
+        self.assertEqual(validate_phone("+7 999 123 45 67"), "+79991234567")
+
+    def test_ten_digits_without_country_code(self):
+        self.assertEqual(validate_phone("9991234567"), "+79991234567")
+
+    def test_empty_phone_rejected(self):
+        with self.assertRaises(ValidationError):
+            validate_phone("   ")
+
+    def test_too_short_rejected(self):
+        with self.assertRaises(ValidationError):
+            validate_phone("+7 999 123")
+
+    def test_non_string_rejected(self):
+        with self.assertRaises(ValidationError):
+            validate_phone(79991234567)
+
 
 if __name__ == "__main__":
     unittest.main()
