@@ -7,7 +7,7 @@ from pathlib import Path
 # PATH_SETUP: запуск тестов из корня проекта без установки пакета.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from form_validator import validate_email, validate_username
+from form_validator import validate_email, validate_phone, validate_username
 from form_validator.validators import ValidationError
 
 
@@ -50,6 +50,41 @@ class TestValidateUsername(unittest.TestCase):
     def test_cyrillic_rejected(self):
         with self.assertRaises(ValidationError):
             validate_username("студент")
+
+class TestValidatePhone(unittest.TestCase):
+    def test_plus_seven_with_brackets(self):
+        self.assertEqual(validate_phone("+7 (999) 123-45-67"), "+79991234567")
+
+    def test_eight_prefix(self):
+        self.assertEqual(validate_phone("8-999-123-45-67"), "+79991234567")
+
+    def test_spaces_only(self):
+        self.assertEqual(validate_phone("+7 999 123 45 67"), "+79991234567")
+
+    def test_ten_digits_without_country_code(self):
+        self.assertEqual(validate_phone("9991234567"), "+79991234567")
+
+    def test_empty_phone_rejected(self):
+        with self.assertRaises(ValidationError):
+            validate_phone("   ")
+
+    def test_too_short_rejected(self):
+        with self.assertRaises(ValidationError):
+            validate_phone("+7 999 123")
+
+    def test_non_string_rejected(self):
+        with self.assertRaises(ValidationError):
+            validate_phone(79991234567)
+
+    def test_letters_rejected(self):
+        """Регрессия по замечанию ревьюера: буквы не должны игнорироваться."""
+        with self.assertRaises(ValidationError):
+            validate_phone("abc9991234567")
+
+    def test_double_plus_rejected(self):
+        """Регрессия по замечанию ревьюера: "++7..." не должен приниматься."""
+        with self.assertRaises(ValidationError):
+            validate_phone("++7 999 123 45 67")
 
 
 if __name__ == "__main__":
