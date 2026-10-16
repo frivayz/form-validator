@@ -45,11 +45,15 @@ def validate_username(value: str) -> str:
     return value
 
 
+PHONE_ALLOWED_RE = re.compile(r"^[\d\s()+\-]*$")
 PHONE_DIGITS_RE = re.compile(r"\D")
 
 
 def validate_phone(value: str) -> str:
     """Проверяет номер телефона и приводит его к формату +7XXXXXXXXXX.
+
+    Поддерживаются записи вида ``+7 (999) 123-45-67``, ``8-999-123-45-67``
+    и ``+7 999 123 45 67``. Результат всегда имеет вид ``+79991234567``.
 
     :param value: проверяемое значение
     :return: нормализованный номер
@@ -58,7 +62,20 @@ def validate_phone(value: str) -> str:
     if not isinstance(value, str):
         raise ValidationError("Телефон должен быть строкой")
 
-    digits = PHONE_DIGITS_RE.sub("", value)
+    stripped = value.strip()
+    if not stripped:
+        raise ValidationError("Телефон не может быть пустым")
+
+    # Отсекаем буквы, знаки препинания и прочий мусор до нормализации:
+    # иначе регулярное выражение ниже молча выбросит их и примет "abc9991234567".
+    if not PHONE_ALLOWED_RE.match(stripped):
+        raise ValidationError(f"Некорректный номер телефона: {value!r}")
+
+    # "+" допустим только один и только в начале записи.
+    if stripped.count("+") > 1 or ("+" in stripped and not stripped.startswith("+")):
+        raise ValidationError(f"Некорректный номер телефона: {value!r}")
+
+    digits = PHONE_DIGITS_RE.sub("", stripped)
 
     if len(digits) == 11 and digits[0] in "78":
         digits = "7" + digits[1:]

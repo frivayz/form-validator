@@ -76,6 +76,16 @@ class TestValidatePhone(unittest.TestCase):
         with self.assertRaises(ValidationError):
             validate_phone(79991234567)
 
+    def test_letters_rejected(self):
+        """Регрессия по замечанию ревьюера: буквы не должны игнорироваться."""
+        with self.assertRaises(ValidationError):
+            validate_phone("abc9991234567")
+
+    def test_double_plus_rejected(self):
+        """Регрессия по замечанию ревьюера: "++7..." не должен приниматься."""
+        with self.assertRaises(ValidationError):
+            validate_phone("++7 999 123 45 67")
+
 
 if __name__ == "__main__":
     unittest.main()
